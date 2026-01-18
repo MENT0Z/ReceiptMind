@@ -1,0 +1,74 @@
+[
+  {
+    "image": "X00016469622.jpg",
+    "gt": "TAN WOON YANN",
+    "pred": "YONGFATT ENTERPRISE",
+    "cer": 0.6923
+  },
+  {
+    "image": "X00016469622.jpg",
+    "gt": "YONGFATT ENTERPRISE",
+    "pred": "NO.122,124. JALAN DEDAP 13",
+    "cer": 0.7895
+  },
+  {
+    "image": "X00016469623.jpg",
+    "gt": "WA45 /2A - 12",
+    "pred": "9555916500133",
+    "cer": 0.8182
+  },
+  {
+    "image": "X00016469623.jpg",
+    "gt": "WDOO - 15",
+    "pred": "WDO0 - 15",
+    "cer": 0.1429
+  },
+  {
+    "image": "X00016469623.jpg",
+    "gt": "UPERATOR TRAINEE CASHIER",
+    "pred": "18-11-18 13:58 SH01 ZI53",
+    "cer": 0.7917
+  },
+  {
+    "image": "X51005255805.jpg",
+    "gt": "67,JLN MEWAH 25/63 TMN SRI MUDA,",
+    "pred": "40400 Shah alam.",
+    "cer": 0.8333
+  },
+  {
+    "image": "X51008114282.jpg",
+    "gt": "LOP P.T. 2811, JALAN ANGSA,",
+    "pred": "LOT P.T. 2811, JALAN ANGSA,",
+    "cer": 0.04
+  },
+  {
+    "image": "X51008128062.jpg",
+    "gt": "RESTAURANT JIAWEI",
+    "pred": "JIAWEI HOUSE",
+    "cer": 0.6471
+  },
+  {
+    "image": "X51008128062.jpg",
+    "gt": "JIAWEI HOUSE",
+    "pred": "002693074-K",
+    "cer": 1.0
+  },
+  {
+    "image": "X51008128062.jpg",
+    "gt": "13, JLN TASIK UTAMA 8",
+    "pred": "MEDAN NIAGA DAMAI SG BESI",
+    "cer": 0.6
+  },
+  {
+    "image": "X51008128062.jpg",
+    "gt": "SUB TOTAL BEFORE DISCOUNT",
+    "pred": "Sub Total Before Discouna",
+    "cer": 0.04
+  },
+  {
+    "image": "X51008164996.jpg",
+    "gt": "TOTAL (INCLUSIVE OF GST) :",
+    "pred": "Total (Excluding GST):",
+    "cer": 0.3636
+  }
+]

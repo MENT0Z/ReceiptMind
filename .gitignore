@@ -1,0 +1,6 @@
+en_PP-OCRv4_rec_infer/
+infer/
+infer_db++/
+infer_det_pre/
+RawDataset/
+PaddleOCR/

@@ -1,0 +1,176 @@
+[
+  {
+    "image": "X00016469622.jpg",
+    "gt": "TAN WOON YANN",
+    "pred": "YONGFATTENTERPRISE",
+    "cer": 0.6923
+  },
+  {
+    "image": "X00016469622.jpg",
+    "gt": "YONGFATT ENTERPRISE",
+    "pred": "NO.122.124JALAN DEDAP13",
+    "cer": 0.7895
+  },
+  {
+    "image": "X00016469623.jpg",
+    "gt": "WA45 /2A - 12",
+    "pred": "9555916500133",
+    "cer": 0.8182
+  },
+  {
+    "image": "X00016469623.jpg",
+    "gt": "KLEENSO AJAIB 99 SERAI WANYI 900G",
+    "pred": "KLEENSOAJAIB 99 SERAI WANYI900G",
+    "cer": 0.0606
+  },
+  {
+    "image": "X00016469623.jpg",
+    "gt": "WDOO - 15",
+    "pred": "WD00-15",
+    "cer": 0.4286
+  },
+  {
+    "image": "X00016469623.jpg",
+    "gt": "HANDKERCHIEF 71386#2PCS",
+    "pred": "HANDKERCHIEF71386#2PCS",
+    "cer": 0.0455
+  },
+  {
+    "image": "X00016469623.jpg",
+    "gt": "PI12PJ11-4 - 6/300",
+    "pred": "PI12PJ11-4-6/300",
+    "cer": 0.0667
+  },
+  {
+    "image": "X00016469623.jpg",
+    "gt": "QTY(S) : 5",
+    "pred": "Oty(s):5",
+    "cer": 0.3333
+  },
+  {
+    "image": "X00016469623.jpg",
+    "gt": "UPERATOR TRAINEE CASHIER",
+    "pred": "18-11-1813:58SH01Z153",
+    "cer": 0.9167
+  },
+  {
+    "image": "X51005255805.jpg",
+    "gt": "67,JLN MEWAH 25/63 TMN SRI MUDA,",
+    "pred": "40400 SHAH ALAM.",
+    "cer": 0.8333
+  },
+  {
+    "image": "X51008114282.jpg",
+    "gt": "LOP P.T. 2811, JALAN ANGSA,",
+    "pred": "LOT P.T.2B11, JALAN ANGSA,",
+    "cer": 0.12
+  },
+  {
+    "image": "X51008123599.jpg",
+    "gt": "NO.29M,JALAN DINAR G U3/G,SEKSYEN U3,",
+    "pred": "No.29M,Jalan DinarGU3/G,Seksyen U3,",
+    "cer": 0.0588
+  },
+  {
+    "image": "X51008123599.jpg",
+    "gt": "SUBANG PERDANA, 40150 SHAH ALAM",
+    "pred": "Subang Perdana,40150 Shah Alam",
+    "cer": 0.0333
+  },
+  {
+    "image": "X51008123599.jpg",
+    "gt": "013-336 3999",
+    "pred": "013-3363999",
+    "cer": 0.0909
+  },
+  {
+    "image": "X51008123599.jpg",
+    "gt": "GST REG NO: 002077622272",
+    "pred": "GSTRegNo:002077622272",
+    "cer": 0.1304
+  },
+  {
+    "image": "X51008123599.jpg",
+    "gt": ": 17/06/2018 7:36:12 PM",
+    "pred": "：17/06/20187:36:12PM",
+    "cer": 0.1053
+  },
+  {
+    "image": "X51008123599.jpg",
+    "gt": "SR 6001188379050",
+    "pred": "SR6001188379050",
+    "cer": 0.0625
+  },
+  {
+    "image": "X51008123599.jpg",
+    "gt": "KITCHEN LIGHTER 2015",
+    "pred": "Kitchen Lighter2015",
+    "cer": 0.05
+  },
+  {
+    "image": "X51008128062.jpg",
+    "gt": "RESTAURANT JIAWEI",
+    "pred": "JIAWEIHOUSE",
+    "cer": 0.6471
+  },
+  {
+    "image": "X51008128062.jpg",
+    "gt": "JIAWEI HOUSE",
+    "pred": "002693074-K",
+    "cer": 1.0
+  },
+  {
+    "image": "X51008128062.jpg",
+    "gt": "13, JLN TASIK UTAMA 8",
+    "pred": "MEDAN NIAGA DAMAI SGBESI",
+    "cer": 0.6
+  },
+  {
+    "image": "X51008128062.jpg",
+    "gt": "SUB TOTAL BEFORE DISCOUNT",
+    "pred": "Sub Total Before Discoun",
+    "cer": 0.04
+  },
+  {
+    "image": "X51008128062.jpg",
+    "gt": "T. AWAY",
+    "pred": "T.AWAY",
+    "cer": 0.1429
+  },
+  {
+    "image": "X51008164996.jpg",
+    "gt": "(GST REG. NO : 000670224384)",
+    "pred": "（GSTReg.No:000670224384）",
+    "cer": 0.125
+  },
+  {
+    "image": "X51008164996.jpg",
+    "gt": "BILL#:V001-540581",
+    "pred": "Bi11#:V001-540581",
+    "cer": 0.1429
+  },
+  {
+    "image": "X51008164996.jpg",
+    "gt": "ORDER#: 140688",
+    "pred": "Order#:140688",
+    "cer": 0.0833
+  },
+  {
+    "image": "X51008164996.jpg",
+    "gt": ": 17-06-2018 14:07:29",
+    "pred": "：17-06-201814:07:29",
+    "cer": 0.0667
+  },
+  {
+    "image": "X51008164996.jpg",
+    "gt": "CASHIER : 113 CASHIER",
+    "pred": "Cashier:113CASHIER",
+    "cer": 0.1053
+  },
+  {
+    "image": "X51008164996.jpg",
+    "gt": "TOTAL (INCLUSIVE OF GST) :",
+    "pred": "Total （ExcludingGST）:",
+    "cer": 0.4091
+  }
+]
