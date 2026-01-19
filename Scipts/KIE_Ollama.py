@@ -252,6 +252,42 @@ def parse_ocr_file(path):
 # PRINT
 # =====================================================
 
+def receipt_to_dict(r: ReceiptData) -> dict:
+    return {
+        "receipt_id": r.receipt_id,
+        "vendor_name": r.vendor_name,
+        "vendor_address": r.vendor_address,
+        "vendor_phone": r.vendor_phone,
+        "vendor_gst": r.vendor_gst,
+        "date": r.date,
+        "time": r.time,
+        "subtotal_amount": r.subtotal_amount,
+        "tax_amount": r.tax_amount,
+        "discount_amount": r.discount_amount,
+        "total_amount": r.total_amount,
+        "payment_method": r.payment_method,
+        "card_last4": r.card_last4,
+        "transaction_id": r.transaction_id,
+        "items": [
+            {
+                "name": i.name,
+                "quantity": i.quantity,
+                "price": i.price
+            }
+            for i in (r.items or [])
+        ]
+    }
+
+def save_receipts_to_txt(receipts, output_path):
+    with open(output_path, "w", encoding="utf-8") as f:
+        for r in receipts:
+            json_line = json.dumps(
+                receipt_to_dict(r),
+                ensure_ascii=False
+            )
+            f.write(json_line + "\n")
+
+
 def print_receipt(r: ReceiptData):
     print(r)
     """
@@ -284,5 +320,12 @@ def print_receipt(r: ReceiptData):
 
 if __name__ == "__main__":
     receipts = parse_ocr_file(DATA_PATH)
+
+    save_receipts_to_txt(
+        receipts,
+        "parsed_receipts.txt"
+    )
+
     for r in receipts:
         print_receipt(r)
+
