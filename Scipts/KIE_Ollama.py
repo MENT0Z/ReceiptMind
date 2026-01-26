@@ -10,7 +10,7 @@ from receiptModel import ReceiptData, Item
 DATA_PATH = r"C:\Users\Madan Raj Upadhyay\Downloads\Paddle\PaddleOCR\inference_results\system_results.txt"
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL_NAME = "gemma3"
+MODEL_NAME = "qwen3:4b-instruct"
 
 # =====================================================
 # OCR NORMALIZATION
@@ -63,21 +63,27 @@ def extract_vendor_gst(lines):
     return None
 
 
+import re
+
+TIME_PATTERN = r"\b\d{1,2}[:\.\-]\d{2}([:\.\-]\d{2})?\b"
+
+
 def extract_date_time(lines):
-    date, time = None, None
+    time = None, None
 
     for l in lines:
-        if not date:
-            m = re.search(r"\b\d{2}[/-]\d{2}[/-]\d{4}\b", l["text"])
-            if m:
-                date = m.group()
+        text = l["text"]
 
         if not time:
-            m = re.search(r"\b\d{2}:\d{2}(:\d{2})?\b", l["text"])
+            m = re.search(TIME_PATTERN, text)
             if m:
                 time = m.group()
 
-    return date, time
+        if time:
+            break
+
+    return time
+
 
 
 def extract_address(lines, vendor_name):
@@ -134,13 +140,11 @@ def build_llm_prompt(receipt_text: str) -> str:
 
         Schema:
             {{
+            "date": string | null,
             "total_amount": number | null,
             "items": [
                 {{"name": string, "quantity": number, "price": number}}
-            ],
-            "subtotal_amount": number | null,
-            "tax_amount": number | null,
-            "discount_amount": number | null,
+            ]
             }}
 
         Receipt text:
@@ -217,7 +221,7 @@ def parse_ocr_file(path):
             receipt.vendor_phone = extract_vendor_phone(lines)
             receipt.vendor_gst = extract_vendor_gst(lines)
             receipt.vendor_address = extract_address(lines, receipt.vendor_name)
-            receipt.date, receipt.time = extract_date_time(lines)
+            receipt.time = extract_date_time(lines)
 
             # LLM ONLY FOR REST
             receipt_text = build_receipt_text(lines)
@@ -230,6 +234,7 @@ def parse_ocr_file(path):
             receipt.payment_method = llm_data.get("payment_method")
             receipt.card_last4 = llm_data.get("card_last4")
             receipt.transaction_id = llm_data.get("transaction_id")
+            receipt.date = llm_data.get("date") 
 
 
             items_data = llm_data.get("items", [])
@@ -323,7 +328,7 @@ if __name__ == "__main__":
 
     save_receipts_to_txt(
         receipts,
-        "parsed_receipts.txt"
+        "parsed_receipts_new.txt"
     )
 
     for r in receipts:
