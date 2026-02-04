@@ -17,7 +17,7 @@ utils_path = r"C:\Users\Madan Raj Upadhyay\Downloads\Paddle\Scipts\LLM_Inference
 if utils_path not in sys.path:
     sys.path.append(utils_path)
 
-from utils import CATEGORY_ITEMS, CATEGORY_NAME_TO_ID
+from db_utils import CATEGORY_ITEMS, CATEGORY_NAME_TO_ID
 
 # =====================================================
 # CONFIG
@@ -262,8 +262,142 @@ def ingest():
     print(f"Inserted: {inserted}")
     print(f"Skipped: {skipped}")
 
-if __name__ == "__main__":
-    ingest()
+def safe_numeric(v):
+    if v in ("", None):
+        return None
+    return float(v)
+
+def storeInDB(data):
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=DictCursor)
+
+    try:
+        parsed = data.get("parsed_output", {})
+
+        # -------------------------------
+        # RECEIPT BASIC FIELDS (SOFT)
+        # -------------------------------
+        receipt_ts = parse_receipt_ts(parsed.get("date"), None)
+        total = parsed.get("total_amount")
+
+        # allow missing total
+        if total is None:
+            total = ""
+
+        # -------------------------------
+        # VENDOR (SOFT)
+        # -------------------------------
+        vendor_id = None
+        vendor_name = safe_str(parsed.get("vendor_name"))
+
+        if vendor_name:
+            cur.execute("""
+                SELECT vendor_id
+                FROM vendors
+                WHERE LOWER(name) = LOWER(%s)
+                LIMIT 1;
+            """, (vendor_name,))
+
+            row = cur.fetchone()
+            if row:
+                vendor_id = row["vendor_id"]
+            else:
+                cur.execute("""
+                    INSERT INTO vendors (name, address, phone)
+                    VALUES (%s,%s,%s)
+                    RETURNING vendor_id;
+                """, (
+                    vendor_name,
+                    safe_str(parsed.get("vendor_address")),
+                    safe_str(parsed.get("vendor_phone"))
+                ))
+                vendor_id = cur.fetchone()["vendor_id"]
+
+        # -------------------------------
+        # INSERT RECEIPT (NO STRICT CHECKS)
+        # -------------------------------
+        cur.execute("""
+            INSERT INTO receipts (
+                vendor_id,
+                receipt_datetime,
+                total
+            )
+            VALUES (%s,%s,%s)
+            RETURNING receipt_id;
+        """, (
+            vendor_id,
+            receipt_ts,
+            total
+        ))
+        receipt_id = cur.fetchone()["receipt_id"]
+        # -------------------------------
+        # ITEMS (CATEGORY FROM JSON ONLY)
+        # -------------------------------
+        for item in parsed.get("items", []):
+            name = safe_str(item.get("name"))
+            if not name or is_noise_item(name):
+                continue
+
+            category_name = safe_str(item.get("category")).lower()
+            if not category_name:
+                continue
+
+            cur.execute("""
+                SELECT category_id
+                FROM categories
+                WHERE LOWER(name) = %s
+                LIMIT 1;
+            """, (category_name,))
+
+            cat_row = cur.fetchone()
+            if not cat_row:
+                continue
+
+            quantity = item.get("quantity") or 1
+            unit_price = safe_numeric(item.get("price"))
+        
+
+            # insert item and get item_id
+            cur.execute("""
+                INSERT INTO items (
+                    receipt_id,
+                    category_id,
+                    name,
+                    quantity,
+                    unit_price
+                )
+                VALUES (%s,%s,%s,%s,%s)
+                RETURNING item_id;
+            """, (
+                receipt_id,
+                cat_row["category_id"],
+                name,
+                quantity,
+                unit_price,
+            ))
+
+            item_id = cur.fetchone()["item_id"]
+
+            # insert into item_search with NULL embed
+            cur.execute("""
+                INSERT INTO item_search (item_id, embed)
+                VALUES (%s, NULL);
+            """, (item_id,))
+
+        conn.commit()
+        return {"status": "ok", "receipt_id": receipt_id}
+
+    except Exception as e:
+        conn.rollback()
+        print("❌ storeInDB error:", e)
+        return {"status": "failed"}
+
+    finally:
+        cur.close()
+        conn.close()
+
+# if __name__ == "__main__":
+#     storeInDB({})
 
 
 

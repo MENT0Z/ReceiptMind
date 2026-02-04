@@ -15,7 +15,7 @@ PADDLE_CMD_TEMPLATE = [
     "--det_model_dir=C:\\Users\\Madan Raj Upadhyay\\Downloads\\Paddle\\infer_db++",
     "--rec_model_dir=C:\\Users\\Madan Raj Upadhyay\\Downloads\\Paddle\\en_PP-OCRv4_rec_infer",
     "--rec_char_dict_path=ppocr/utils/en_dict.txt",
-    "--use_gpu=False"
+    "--use_gpu=True"
 ]
 # ----------------------------------------
 

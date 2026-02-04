@@ -256,8 +256,6 @@ def generate_db_schema(connection) -> tuple[str, str]:
 
 
 
-
-
 CATEGORY_ITEMS = {
     "restaurant": [
         # Indian main course

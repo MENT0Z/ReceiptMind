@@ -5,7 +5,7 @@ utils_path = r"C:\Users\Madan Raj Upadhyay\Downloads\Paddle\Scipts\LLM_Inference
 if utils_path not in sys.path:
     sys.path.append(utils_path)
 
-from utils import CATEGORY_ITEMS, CATEGORY_NAME_TO_ID
+from db_utils import CATEGORY_ITEMS, CATEGORY_NAME_TO_ID
 
 
 logging.basicConfig(level=logging.INFO,
@@ -21,6 +21,7 @@ Optimized for PostgreSQL with pgvector support
 """
 
 def create_text_to_sql_prompt(database_schema: str) -> str:
+    print(database_schema)
     """
     Create the system prompt for the Receipt Text-to-SQL agent.
     """

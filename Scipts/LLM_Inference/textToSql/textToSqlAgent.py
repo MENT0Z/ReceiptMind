@@ -13,7 +13,7 @@ import sqlglot
 import requests
 from typing import Dict, Any, List, Optional
 from dotenv import load_dotenv
-from utils import generate_db_schema
+from db_utils import generate_db_schema
 from prompt import (
     create_text_to_sql_prompt,
     create_final_answer_prompt,
