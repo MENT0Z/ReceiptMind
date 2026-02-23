@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document Intelligence Dashboard</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="stylesheet" href="dashboard.css" />
+    <link rel="stylesheet" href="chat.css" />
+
+</head>
+
+<body>
+
+    <main class="dashboard">
+
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <h1>Document Intelligence</h1>
+
+            <select id="timeRange">
+                <option value="all_time">All Time</option>
+                <option value="last_year">Last Year</option>
+                <option value="last_30_days">Last 30 Days</option>
+                <option value="last_7_days">Last 7 Days</option>
+            </select>
+        </header>
+
+        <!-- Stats -->
+        <section class="stats">
+            <div class="stat">
+                <p>Total Spent</p>
+                <h2 id="totalSpent">$0</h2>
+            </div>
+            <div class="stat">
+                <p>Total Receipts</p>
+                <h2 id="totalReceipts">0</h2>
+            </div>
+            <div class="stat">
+                <p>Avg Receipt</p>
+                <h2 id="avgReceipt">$0</h2>
+            </div>
+            <!-- <div class="stat highlight">
+                <p>Top Category</p>
+                <h2 id="topCategoryName">—</h2>
+                <span id="topCategoryPercent">0%</span>
+            </div> -->
+        </section>
+
+        <!-- Charts -->
+        <section class="charts">
+            <div class="card large">
+                <h3>Spending Over Time</h3>
+                <canvas id="lineChart"></canvas>
+            </div>
+
+            <!-- <div class="card">
+                <h3>Spending by Category</h3>
+                <div class="donut">
+                    <canvas id="categoryChart"></canvas>
+                    <ul id="categoryList"></ul>
+                </div>
+            </div> -->
+        </section>
+
+        <!-- Table -->
+        <section class="card">
+            <h3>Recent Receipts</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Receipt</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="receiptsTable"></tbody>
+            </table>
+            <button class="link-btn" onclick="openReceiptsDrawer()">
+                View All Receipts →
+            </button>
+        </section>
+
+    </main>
+
+    <!-- Floating Scan Button -->
+    <button class="scan-btn" onclick="window.location.href='scan.html'">
+        ✨ Scan New Document
+    </button>
+
+    <div id="receiptsDrawer" class="drawer">
+        <div class="drawer-header">
+            <h2>All Receipts</h2>
+            <button onclick="closeReceiptsDrawer()">✕</button>
+        </div>
+        <div id="receiptsList" class="drawer-body"></div>
+    </div> <button id="chatToggle" class="chat-toggle-btn">💬</button>
+
+    <aside id="chatPanel" class="chat-panel">
+        <div class="chat-header">
+            <span>AI Agent</span>
+            <span id="chatClose" class="chat-close">✕</span>
+        </div>
+        <div id="messages" class="chat-messages"></div>
+        <div class="chat-input">
+            <input id="chatInput" type="text" placeholder="Ask something..." autocomplete="off" />
+            <button id="sendBtn">Send</button>
+        </div>
+    </aside>
+
+    <script src="chat-ui.js"></script>
+    <script src="chat.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>

@@ -63,10 +63,18 @@ def normalize_line(line):
 
 def extract_vendor_name(lines, img_height):
     VENDOR_KEYS = [
+        "DINERS","DINING","RESTAURANT","CAFE","CAFÉ","BISTRO","DHABA","TRADING","COMPANY","CO","PRIVATE","LIMITED","LTD","LLP","INC","CORP","CORPORATION",
+        "MITHAI","NAMKEEN","SWEETS","CONFECTIONERY","CONFECTIONERIES","FOOD","JUICE","SHAKE","TEA","COFFEE","PIZZA","BURGER",
+        "SUPER","SUPER MART","SUPER MARKET","HYPER","HYPERMARKET","MALL","PLAZA","TOWER","COMPLEX",
+        "PAVILLION", "MALL", "PLAZA", "TOWER", "COMPLEX","Pavillion","PAVILION",
+        "BAKINO'S",
+        "BAKE","SHOP","SHOWROOM","OUTLET","STORE","STORES","MARKET","MART","SUPERMARKET","HYPERMARKET",
         # Retail
         "STORE", "SHOP", "MART", "SUPERMARKET", "HYPERMARKET",
         "BAZAAR", "BAZAR", "MARKET" ,"GROCERY","GROCERS","GROCER","SDN","BHD",
-
+        "PVT", "LTD", "LIMITED", "LLP", "INC", "CORP", "CORPORATION",
+        "PVT.", "LTD.", "LLP.", "INC.", "CORP.", "CORPORATION.",
+        "KITCHEN", "GROCERY", "GROCER", "GROCERS", "BAKERY", "PHARMACY", "ELECTRONICS", "MOBILE", "CLOTHING", "FASHION", "JEWELRY", 
         # Food / hospitality
         "HOTEL", "RESTAURANT", "CAFE", "CAFÉ",
         "BISTRO", "DHABA", "BAKERY", "SWEETS","BAKERIES","SWEET","CONFECTIONERY","CONFECTIONERIES","FOOD","JUICE","SHAKE","TEA","COFFEE","PIZZA","BURGER",
@@ -116,8 +124,6 @@ def extract_vendor_name(lines, img_height):
         "PHONE", "MOBILE", "TEL"
     ]
 
-    candidates = []
-
     for l in lines:
         txt = l["text"].upper().strip()
 
@@ -129,9 +135,7 @@ def extract_vendor_name(lines, img_height):
         if any(b in txt for b in BLACKLIST):
             continue
 
-        alpha_count = sum(c.isalpha() for c in txt)
         has_keyword = any(k in txt for k in VENDOR_KEYS)
-        print(txt, " | Has keyword:", has_keyword, " | Alpha count:", alpha_count)
         if has_keyword:
             return l["text"].strip()
         
@@ -215,7 +219,10 @@ def extract_address(lines, vendor_name):
         "BAY",
         "COVE",
         "SHORE",
-        "POINT",
+        "DUBAI",
+        "POINT","PLOT","BRIDGE","TUNNEL","ROAD","BUILDINGS","STREET","ST","LANE","LN","AVENUE","AVE","CROSS","CIR","CIRCLE","HIGHWAY","HWY","BYPASS","MAIN",
+        "DELHI","LAYOUT","VILLAGE","VIL","PO","POST OFFICE","TEHSIL","PS","NEAR","OPP","OPPOSITE","BEHIND",
+        "FLOOR","NEW DELHI","OLD DELHI","JANAKPURI","SECTOR","COLONY","NAGAR","TALUK","MANDAL","DISTRICT","CITY","TOWN",
         "TAMIL NADU", "TELANGANA", "ANDHRA PRADESH", "KERALA", "KARNATAKA", "MAHARASHTRA", "GUJARAT",
         "RAJASTHAN", "PUNJAB", "HARYANA", "BIHAR", "UTTAR PRADESH", "UTTARAKHAND", "CHHATTISGARH", "ODISHA", "WEST BENGAL", "ASSAM", "NAGALAND", "MANIPUR", "MIZORAM", "TRIPURA", "MEGHALAYA", "ARUNACHAL PRADESH", "SIKKIM",
         "JHARKHAND", "JAMMU AND KASHMIR", "LADAKH", "HIMACHAL PRADESH",
@@ -259,18 +266,18 @@ def extract_address(lines, vendor_name):
         raw_text = l["text"]
         txt = normalize_text(raw_text)
 
-        print("Address line check:", vendor_words, txt)
+        #print("Address line check:", vendor_words, txt)
 
         # Detect vendor line
         if vendor_name and any(w in txt for w in vendor_words):
             start_collecting = True
             continue
-        print("  Start collecting:", start_collecting)
+        #print("  Start collecting:", start_collecting)
         if not start_collecting:
             continue
 
         has_key = any(k in txt for k in ADDRESS_KEYS)
-        print("  Has address key:", has_key,txt)
+        #print("  Has address key:", has_key,txt)
         has_pin = re.search(r"\b\d{5,6}\b", txt)
         has_house_no = re.search(r"\b(NO\s*\d+|\d{1,4}[/\-]\d{1,4})\b", txt)
 
@@ -401,7 +408,7 @@ def getParsedOutput(rawData:str):
     lines = [normalize_line(l) for l in ocr_lines]
     
     lines.sort(key=lambda x: x["y_min"])
-    print("Sorted lines:", len(lines) , lines)
+    #print("Sorted lines:", len(lines) , lines)
     img_height = max(l["y_max"] for l in lines)
 
     receipt = ReceiptData()

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Document Intelligence Pipeline</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- Header -->
+    <header class="header">
+        <h1>Document Intelligence Pipeline</h1>
+        <p>OCR → KIE → Structured Data → Intelligent Queries</p>
+    </header>
+
+    <!-- Upload -->
+    <section class="card split-layout">
+        <div class="upload-left">
+            <h2>Upload Documents</h2>
+
+            <label class="upload-box">
+                <input type="file" id="imageInput" accept="image/*" hidden />
+                <div class="upload-content">
+                    <span id="uploadText">Click to upload an image</span>
+                </div>
+            </label>
+
+            <button id="processBtn" disabled>Process Document</button>
+        </div>
+
+        <div class="upload-right" id="imagePreview"></div>
+    </section>
+
+    <!-- Loading -->
+    <div id="loadingOverlay" class="loading hidden">
+        <div class="shimmer-card"></div>
+        <p id="loadingText">Keep calm, your document is processing…</p>
+        <div id="loadingStep" class="loading-step"></div>
+    </div>
+
+    <!-- Result -->
+    <section id="resultSection" class="card hidden receipt">
+        <div class="receipt-header">
+            <input id="vendorName" placeholder="Vendor name" />
+            <input id="vendorAddress" placeholder="Vendor address" />
+            <div class="receipt-meta">
+                <input id="vendorPhone" placeholder="Phone" />
+                <input id="docDate" placeholder="Date" />
+                <input id="docTime" placeholder="Time" />
+            </div>
+        </div>
+
+        <hr />
+
+        <div class="items-header">
+            <span>Item</span>
+            <span>Qty</span>
+            <span>Price</span>
+            <span>Category</span>
+        </div>
+
+        <div id="itemsBody"></div>
+
+        <div id="addItemRow">
+            <button id="addItemBtn">＋ Add Item</button>
+        </div>
+
+        <hr />
+
+        <div class="total-row">
+            <span>Total</span>
+            <input id="totalAmount" type="number" />
+        </div>
+
+        <button id="saveBtn">Save</button>
+    </section>
+
+    <footer class="footer">
+        <span>AI-powered document understanding system</span>
+    </footer>
+</div>
+
+
+
+<div id="toast" class="toast hidden"></div>
+
+<!-- Scripts -->
+<script src="app.js"></script>
+
+</body>
+</html>

@@ -4,6 +4,7 @@ from psycopg2.extras import DictCursor
 from dotenv import load_dotenv
 import os
 import requests
+from datetime import datetime, timedelta
 import re
 from datetime import datetime, timezone
 from dateutil import parser as dateparser
@@ -396,11 +397,242 @@ def storeInDB(data):
         cur.close()
         conn.close()
 
+def _fetch_items_for_receipts(cur, receipt_ids):
+    if not receipt_ids:
+        return {}
+
+    cur.execute("""
+        SELECT
+            item_id,
+            receipt_id,
+            name,
+            quantity,
+            unit_price,
+            total_price
+        FROM items
+        WHERE receipt_id = ANY(%s)
+        ORDER BY receipt_id;
+    """, (receipt_ids,))
+
+    items_map = {}
+
+    for r in cur.fetchall():
+        receipt_id = r[1]
+
+        items_map.setdefault(receipt_id, []).append({
+            "item_id": r[0],
+            "name": r[2],
+            "quantity": float(r[3]),
+            "unit_price": float(r[4]),
+            "total_price": float(r[5]) if r[5] else float(r[3] * r[4])
+        })
+
+    return items_map
+
+def getDashboardStats(time_filter="all_time"):
+    """
+    time_filter:
+        - "all_time" (default)
+        - "last_year"
+        - "last_30_days"
+        - "last_7_days"
+    """
+    conn = get_connection()
+    cur = conn.cursor()
+
+    try:
+        result = {}
+
+        # ----------------------------
+        # Build date condition
+        # ----------------------------
+        date_condition = ""
+        params = ()
+
+        if time_filter == "last_year":
+            start_date = datetime.now() - timedelta(days=365)
+            date_condition = "WHERE receipt_datetime >= %s"
+            params = (start_date,)
+
+        elif time_filter == "last_30_days":
+            start_date = datetime.now() - timedelta(days=30)
+            date_condition = "WHERE receipt_datetime >= %s"
+            params = (start_date,)
+
+        elif time_filter == "last_7_days":
+            start_date = datetime.now() - timedelta(days=7)
+            date_condition = "WHERE receipt_datetime >= %s"
+            params = (start_date,)
+
+        # ----------------------------
+        # 1️⃣ Total spent
+        # ----------------------------
+        cur.execute(
+            f"SELECT COALESCE(SUM(total), 0) FROM receipts {date_condition};",
+            params
+        )
+        result["total_spent"] = float(cur.fetchone()[0])
+
+        # ----------------------------
+        # 2️⃣ Total receipts
+        # ----------------------------
+        cur.execute(
+            f"SELECT COUNT(*) FROM receipts {date_condition};",
+            params
+        )
+        result["total_receipts"] = cur.fetchone()[0]
+
+        # ----------------------------
+        # 3️⃣ Avg spent per receipt
+        # ----------------------------
+        cur.execute(
+            f"SELECT COALESCE(AVG(total), 0) FROM receipts {date_condition};",
+            params
+        )
+        result["avg_spent_per_receipt"] = float(cur.fetchone()[0])
+
+        # ----------------------------
+        # 4️⃣ Top categories
+        # ----------------------------
+        cur.execute(f"""
+            SELECT 
+                c.category_id,
+                c.name,
+                SUM(i.total_price)
+            FROM items i
+            JOIN categories c ON i.category_id = c.category_id
+            JOIN receipts r ON i.receipt_id = r.receipt_id
+            {date_condition.replace("receipt_datetime", "r.receipt_datetime")}
+            GROUP BY c.category_id, c.name
+            ORDER BY SUM(i.total_price) DESC;
+        """, params)
+
+        result["top_categories"] = [
+            {
+                "category_id": r[0],
+                "category_name": r[1],
+                "total_spent": float(r[2])
+            }
+            for r in cur.fetchall()
+        ]
+
+        # ----------------------------
+        # 5️⃣ Year-wise spending
+        # ----------------------------
+        cur.execute(f"""
+            SELECT 
+                EXTRACT(YEAR FROM receipt_datetime),
+                SUM(total)
+            FROM receipts
+            {date_condition}
+            GROUP BY 1
+            ORDER BY 1;
+        """, params)
+
+        result["yearly_spending"] = [
+            {
+                "year": int(r[0]),
+                "total_spent": float(r[1])
+            }
+            for r in cur.fetchall()
+        ]
+
+        # ----------------------------
+        # 6️⃣ Recent 5 receipts
+        # ----------------------------
+        cur.execute(f"""
+            SELECT receipt_id, receipt_datetime, total
+            FROM receipts
+            {date_condition}
+            ORDER BY receipt_datetime DESC
+            LIMIT 5;
+        """, params)
+
+        recent_rows = cur.fetchall()
+        recent_ids = [r[0] for r in recent_rows]
+
+        recent_items = _fetch_items_for_receipts(cur, recent_ids)
+
+        result["recent_receipts"] = [
+            {
+                "receipt_id": r[0],
+                "receipt_datetime": r[1].isoformat(),
+                "total": float(r[2]),
+                "items": recent_items.get(r[0], [])
+            }
+            for r in recent_rows
+        ]
+
+        return result
+
+    except Exception as e:
+        print("❌ getDashboardStats error:", e)
+        return None
+
+    finally:
+        cur.close()
+        conn.close()
+
+def getAllReceipts():
+    conn = get_connection()
+    cur = conn.cursor()
+
+    try:
+        # 1️⃣ Receipts with vendor info
+        cur.execute("""
+            SELECT
+                r.receipt_id,
+                r.receipt_datetime,
+                r.total,
+                v.name AS vendor_name,
+                v.address AS vendor_address
+            FROM receipts r
+            LEFT JOIN vendors v ON r.vendor_id = v.vendor_id
+            ORDER BY r.receipt_datetime DESC;
+        """)
+
+        receipts = cur.fetchall()
+        receipt_ids = [r[0] for r in receipts]
+
+        # 2️⃣ Items per receipt
+        cur.execute("""
+            SELECT
+                i.receipt_id,
+                i.name,
+                i.quantity,
+                i.total_price
+            FROM items i
+            WHERE i.receipt_id = ANY(%s)
+            ORDER BY i.item_id;
+        """, (receipt_ids,))
+
+        items_map = {}
+        for rid, name, qty, price in cur.fetchall():
+            items_map.setdefault(rid, []).append({
+                "name": name,
+                "quantity": float(qty),
+                "total_price": float(price)
+            })
+
+        # 3️⃣ Final shape
+        return [
+            {
+                "receipt_id": r[0],
+                "receipt_datetime": r[1].isoformat() if r[1] else None,
+                "total": float(r[2]),
+                "vendor_name": r[3],
+                "vendor_address": r[4],
+                "items": items_map.get(r[0], [])
+            }
+            for r in receipts
+        ]
+
+    finally:
+        cur.close()
+        conn.close()
 # if __name__ == "__main__":
-#     storeInDB({})
-
-
-
+#      result = getDashboardStats()
+#      print("Dashboard Stats:", result)
 
 
 

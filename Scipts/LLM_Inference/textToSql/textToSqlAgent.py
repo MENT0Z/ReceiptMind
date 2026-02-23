@@ -35,7 +35,8 @@ EMBEDDING_MODEL = "bge-m3"
 
 # Configure logging
 logging.basicConfig(level=logging.INFO,
-                    format="%(asctime)s - %(levelname)s - %(message)s")
+                    format="%(asctime)s - %(levelname)s - %(message)s",
+                    force=True)
 logger = logging.getLogger(__name__)
 
 
@@ -123,31 +124,33 @@ class AgentTextToSql:
 
         return result
 
-    # =====================================================
-    # EMBEDDINGS (OLLAMA bge-m3)
-    # =====================================================
-
-    def _populate_missing_item_embeddings(self, conn, item_ids: List[int]):
-        if not item_ids:
-            return
-
+    def _populate_all_missing_embeddings(self, conn):
+        """
+        Scans the database for any items missing embeddings and populates them.
+        This ensures the vector search has a full dataset to work with.
+        """
         cur = conn.cursor()
+        
+        # Identify items that have no entry in item_search OR have a NULL embed
         cur.execute("""
             SELECT i.item_id, i.name
             FROM items i
             LEFT JOIN item_search s ON i.item_id = s.item_id
-            WHERE s.embed IS NULL
-            AND i.item_id = ANY(%s);
-        """, (item_ids,))
-
+            WHERE s.embed IS NULL;
+        """)
+        
         rows = cur.fetchall()
         if not rows:
+            logger.info("No missing embeddings found.")
             return
 
-        logger.info(f"Generating embeddings for {len(rows)} items")
+        logger.info(f"Lazy-loading embeddings for {len(rows)} items...")
 
         for item_id, name in rows:
+            # Generate the vector for the item name
             emb = self._generate_embedding(name)
+            
+            # Upsert into item_search
             cur.execute("""
                 INSERT INTO item_search (item_id, embed)
                 VALUES (%s, %s)
@@ -156,6 +159,42 @@ class AgentTextToSql:
             """, (item_id, emb))
 
         conn.commit()
+        logger.info("Database embeddings are now up to date.")
+
+    # =====================================================
+    # EMBEDDINGS (OLLAMA bge-m3)
+    # =====================================================
+
+    # def _populate_missing_item_embeddings(self, conn, item_ids: List[int]):
+    #     if not item_ids:
+    #         return
+
+    #     cur = conn.cursor()
+    #     cur.execute("""
+    #         SELECT i.item_id, i.name
+    #         FROM items i
+    #         LEFT JOIN item_search s ON i.item_id = s.item_id
+    #         WHERE s.embed IS NULL
+    #         AND i.item_id = ANY(%s);
+    #     """, (item_ids,))
+
+    #     rows = cur.fetchall()
+    #     if not rows:
+    #         return
+
+    #     logger.info(f"Generating embeddings for {len(rows)} items")
+
+    #     for item_id, name in rows:
+    #         emb = self._generate_embedding(name)
+    #         cur.execute("""
+    #             INSERT INTO item_search (item_id, embed)
+    #             VALUES (%s, %s)
+    #             ON CONFLICT (item_id)
+    #             DO UPDATE SET embed = EXCLUDED.embed;
+    #         """, (item_id, emb))
+
+    #     conn.commit()
+  
 
 
     def _generate_embedding(self, text: str) -> List[float]:
@@ -250,53 +289,104 @@ class AgentTextToSql:
             conn.close()
             return {"success": False, "error": str(e)}"""
     
+    # def execute_sql(self, sql_query: str, need_embedding=False, embedding_params=None):
+    #     logger.info(f"--- START SQL EXECUTION ---")
+    #     logger.info(f"Executing SQL: {sql_query}")
+        
+    #     is_valid, err = self._validate_sql_query(sql_query)
+    #     logger.info(f"SQL validation: is_valid={is_valid}, err={err}")
+        
+    #     if not is_valid:
+    #         logger.error(f"SQL Validation failed: {err}")
+    #         return {"success": False, "error": err}
+
+    #     try:
+    #         logger.info("Connecting to database...")
+    #         conn = psycopg2.connect(**self.db_config)
+    #         cur = conn.cursor()
+    #         logger.info("Database connection successful.")
+
+    #         if need_embedding:
+    #             logger.info(f"Generating embeddings for {len(embedding_params)} params...")
+    #             embeddings = self._generate_embeddings_for_params(embedding_params)
+                
+    #             for i, emb in enumerate(embeddings):
+    #                 # Using a counter to track replacement
+    #                 sql_query = sql_query.replace("%s::vector", f"'{emb}'::vector", 1)
+    #                 logger.debug(f"Injected embedding for param index {i}")
+
+    #         logger.info(f"Final Query to be sent to DB: {sql_query}")
+            
+    #         cur.execute(sql_query)
+    #         logger.info("Query execution complete. Fetching results...")
+            
+    #         rows = cur.fetchall()
+    #         cols = [d[0] for d in cur.description]
+            
+    #         logger.info(f"Successfully fetched {len(rows)} rows with columns: {cols}")
+
+    #         if need_embedding and "item_id" in cols:
+    #             item_id_idx = cols.index("item_id")
+    #             item_ids = list({r[item_id_idx] for r in rows})
+    #             self._populate_missing_item_embeddings(conn, item_ids)
+
+    #             # re-run query now that embeddings exist
+    #             cur.execute(sql_query)
+    #             rows = cur.fetchall()
+
+    #         conn.close()
+    #         logger.info("Database connection closed.")
+            
+    #         return {
+    #             "success": True,
+    #             "row_count": len(rows),
+    #             "results": [dict(zip(cols, r)) for r in rows],
+    #             "column_names": cols
+    #         }
+
+    #     except Exception as e:
+    #         # CRITICAL: This was likely happening silently
+    #         logger.error(f"DATABASE EXECUTION ERROR: {str(e)}", exc_info=True)
+    #         if 'conn' in locals() and conn:
+    #             conn.close()
+    #             logger.info("Database connection closed after error.")
+    #         return {"success": False, "error": str(e)}
     def execute_sql(self, sql_query: str, need_embedding=False, embedding_params=None):
         logger.info(f"--- START SQL EXECUTION ---")
-        logger.info(f"Executing SQL: {sql_query}")
         
         is_valid, err = self._validate_sql_query(sql_query)
-        logger.info(f"SQL validation: is_valid={is_valid}, err={err}")
-        
         if not is_valid:
             logger.error(f"SQL Validation failed: {err}")
             return {"success": False, "error": err}
 
+        conn = None
         try:
             logger.info("Connecting to database...")
             conn = psycopg2.connect(**self.db_config)
-            cur = conn.cursor()
-            logger.info("Database connection successful.")
-
+            
+            # --- STEP 1: POPULATE DATABASE EMBEDDINGS FIRST ---
             if need_embedding:
-                logger.info(f"Generating embeddings for {len(embedding_params)} params...")
+                # Check the whole table for missing vectors before doing anything else
+                self._populate_all_missing_embeddings(conn)
+
+            # --- STEP 2: PREPARE PARAMETER EMBEDDINGS ---
+            if need_embedding and embedding_params:
+                logger.info(f"Generating embeddings for {len(embedding_params)} search parameters...")
                 embeddings = self._generate_embeddings_for_params(embedding_params)
                 
                 for i, emb in enumerate(embeddings):
-                    # Using a counter to track replacement
+                    # Inject the generated vector into the query
                     sql_query = sql_query.replace("%s::vector", f"'{emb}'::vector", 1)
-                    logger.debug(f"Injected embedding for param index {i}")
 
-            logger.info(f"Final Query to be sent to DB: {sql_query}")
-            
+            # --- STEP 3: EXECUTE THE ACTUAL QUERY ---
+            logger.info(f"Executing final SQL: {sql_query}")
+            cur = conn.cursor()
             cur.execute(sql_query)
-            logger.info("Query execution complete. Fetching results...")
             
             rows = cur.fetchall()
             cols = [d[0] for d in cur.description]
             
-            logger.info(f"Successfully fetched {len(rows)} rows with columns: {cols}")
-
-            if need_embedding and "item_id" in cols:
-                item_id_idx = cols.index("item_id")
-                item_ids = list({r[item_id_idx] for r in rows})
-                self._populate_missing_item_embeddings(conn, item_ids)
-
-                # re-run query now that embeddings exist
-                cur.execute(sql_query)
-                rows = cur.fetchall()
-
-            conn.close()
-            logger.info("Database connection closed.")
+            logger.info(f"Query successful. Returned {len(rows)} rows.")
             
             return {
                 "success": True,
@@ -306,12 +396,65 @@ class AgentTextToSql:
             }
 
         except Exception as e:
-            # CRITICAL: This was likely happening silently
             logger.error(f"DATABASE EXECUTION ERROR: {str(e)}", exc_info=True)
-            if 'conn' in locals() and conn:
-                conn.close()
-                logger.info("Database connection closed after error.")
+            if conn:
+                conn.rollback()
             return {"success": False, "error": str(e)}
+        finally:
+            if conn:
+                conn.close()
+                logger.info("Database connection closed.")
+    # def execute_sql(self, sql_query: str, need_embedding=False, embedding_params=None):
+    #     logger.info("--- START SQL EXECUTION ---")
+    #     logger.info(f"Executing SQL: {sql_query}")
+
+    #     is_valid, err = self._validate_sql_query(sql_query)
+    #     if not is_valid:
+    #         logger.error(f"SQL Validation failed: {err}")
+    #         return {"success": False, "error": err}
+
+    #     conn = None
+    #     try:
+    #         conn = psycopg2.connect(**self.db_config)
+    #         cur = conn.cursor()
+    #         logger.info("Database connection successful.")
+
+    #         # ✅ STEP 1: Populate missing embeddings BEFORE query
+    #         if need_embedding:
+    #             logger.info("Ensuring missing embeddings are generated...")
+    #             self._populate_missing_item_embeddings(conn, embedding_params)
+
+    #         # ✅ STEP 2: Generate query embedding ONCE
+    #         query_embedding = None
+    #         if need_embedding:
+    #             query_embedding = self._generate_embeddings_for_params(embedding_params)
+
+    #         # ✅ STEP 3: Execute query safely
+    #         if need_embedding:
+    #             cur.execute(sql_query, (query_embedding,))
+    #         else:
+    #             cur.execute(sql_query)
+
+    #         rows = cur.fetchall()
+    #         cols = [d[0] for d in cur.description]
+
+    #         logger.info(f"Fetched {len(rows)} rows")
+
+    #         return {
+    #             "success": True,
+    #             "row_count": len(rows),
+    #             "results": [dict(zip(cols, r)) for r in rows],
+    #             "column_names": cols,
+    #         }
+
+    #     except Exception as e:
+    #         logger.error("DATABASE EXECUTION ERROR", exc_info=True)
+    #         return {"success": False, "error": str(e)}
+
+    #     finally:
+    #         if conn:
+    #             conn.close()
+    #             logger.info("Database connection closed.")
 
     # =====================================================
     # FINAL ANSWER
@@ -484,12 +627,14 @@ class AgentTextToSql:
                 # -------------------------------
                 # STEP 3: Generate Final Answer
                 # -------------------------------
+
+                """
                 answer = self.generate_final_answer(
                     user_request,
                     exec_res,
                     sql_res["sql_query"]
                 )
-
+                """
                 logger.info("Pipeline completed successfully")
 
                 return {
@@ -499,7 +644,7 @@ class AgentTextToSql:
                     "need_embedding": sql_res.get("need_embedding", False),
                     "embedding_params": sql_res.get("embedding_params", []),
                     "query_results": exec_res,
-                    "final_answer": answer,
+                    "final_answer": exec_res,
                     "failed_attempts": attempt_history,
                     "attempts": attempt
                 }
