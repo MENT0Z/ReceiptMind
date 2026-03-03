@@ -305,3 +305,6 @@ hr {
     color: var(--muted);
     font-size: 0.9rem;
 }
+.hidden-category-only {
+  display: none;
+}

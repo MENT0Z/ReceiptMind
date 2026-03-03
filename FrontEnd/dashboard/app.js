@@ -150,11 +150,19 @@ function createItemRow(item = {}) {
     .map(c => `<option ${c === item.category ? "selected" : ""}>${c}</option>`)
     .join("");
 
+  // row.innerHTML = `
+  //   <input value="${item.name ?? ""}" placeholder="Item name" />
+  //   <input type="number" value="${item.quantity ?? 1}" />
+  //   <input type="number" step="0.01" value="${item.price ?? ""}" />
+  //   <select>${categoryOptions}</select>
+  //   <button class="delete-item" title="Remove item">✕</button>
+  // `;
+
   row.innerHTML = `
     <input value="${item.name ?? ""}" placeholder="Item name" />
     <input type="number" value="${item.quantity ?? 1}" />
     <input type="number" step="0.01" value="${item.price ?? ""}" />
-    <select>${categoryOptions}</select>
+    <select class="hidden-category-only">${categoryOptions}</select>
     <button class="delete-item" title="Remove item">✕</button>
   `;
 
