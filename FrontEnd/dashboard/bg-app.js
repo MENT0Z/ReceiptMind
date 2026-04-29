@@ -19,35 +19,113 @@ const toast = document.getElementById("toast");
 
 let activeId = null;
 
+const DB_NAME = "ReceiptBGDB";
+const STORE_NAME = "pendingReceipts";
+const DB_VERSION = 1;
+
+function openDB() {
+    return new Promise((resolve, reject) => {
+
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        request.onupgradeneeded = function(e) {
+            const db = e.target.result;
+
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.createObjectStore(STORE_NAME, {
+                    keyPath: "id"
+                });
+            }
+        };
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+
+    });
+}
 
 /* =========================
    STORAGE
 ========================= */
 
-function getReceipts() {
-    return JSON.parse(localStorage.getItem("pending_receipts") || "[]");
+// function getReceipts() {
+//     return JSON.parse(localStorage.getItem("pending_receipts") || "[]");
+// }
+
+// function saveReceipts(data) {
+//     localStorage.setItem("pending_receipts", JSON.stringify(data));
+// }
+
+// function addReceipt(obj) {
+//     const arr = getReceipts();
+//     arr.unshift(obj);
+//     saveReceipts(arr);
+// }
+
+// function deleteReceipt(id) {
+//     const arr = getReceipts().filter(x => x.id !== id);
+//     saveReceipts(arr);
+// }
+
+async function getReceipts() {
+
+    const db = await openDB();
+
+    return new Promise((resolve, reject) => {
+
+        const tx = db.transaction(STORE_NAME, "readonly");
+        const store = tx.objectStore(STORE_NAME);
+
+        const req = store.getAll();
+
+        req.onsuccess = () => resolve(req.result.reverse());
+        req.onerror = () => reject(req.error);
+
+    });
 }
 
-function saveReceipts(data) {
-    localStorage.setItem("pending_receipts", JSON.stringify(data));
+
+async function addReceipt(obj) {
+
+    const db = await openDB();
+
+    return new Promise((resolve, reject) => {
+
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        const store = tx.objectStore(STORE_NAME);
+
+        store.put(obj);
+
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+
+    });
 }
 
-function addReceipt(obj) {
-    const arr = getReceipts();
-    arr.unshift(obj);
-    saveReceipts(arr);
+
+async function deleteReceipt(id) {
+
+    const db = await openDB();
+
+    return new Promise((resolve, reject) => {
+
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        const store = tx.objectStore(STORE_NAME);
+
+        store.delete(id);
+
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+
+    });
 }
 
-function deleteReceipt(id) {
-    const arr = getReceipts().filter(x => x.id !== id);
-    saveReceipts(arr);
-}
 
-window.removePending = function(id){
+window.removePending = async function(id){
 
     if(!confirm("Delete this processed receipt?")) return;
 
-    deleteReceipt(id);
+    await deleteReceipt(id);
     renderPending();
 
     showToast("Receipt removed.");
@@ -133,20 +211,20 @@ processBtn.addEventListener("click", () => {
         body: formData
     })
     .then(res => res.json())
-    .then(data => {
+    .then(async data => {
 
-        const receipt = {
-            id: Date.now() + Math.floor(Math.random()*1000),
-            preview: preview,
-            parsed_output: data.parsed_output
-        };
+    const receipt = {
+        id: Date.now() + Math.floor(Math.random()*1000),
+        preview: preview,
+        parsed_output: data.parsed_output
+    };
 
-        addReceipt(receipt);
-        renderPending();
+    await addReceipt(receipt);
+    await renderPending();
 
-        showToast("Receipt processed successfully.");
+    showToast("Receipt processed successfully.");
 
-    })
+})
     .catch(err => {
         console.error(err);
         showToast("Processing failed.");
@@ -159,9 +237,9 @@ processBtn.addEventListener("click", () => {
    PENDING LIST
 ========================= */
 
-function renderPending() {
+async function renderPending() {
 
-    const arr = getReceipts();
+    const arr = await getReceipts();
 
     pendingList.innerHTML = "";
 
@@ -199,9 +277,9 @@ function renderPending() {
    OPEN RECEIPT
 ========================= */
 
-window.openReceipt = function(id) {
+window.openReceipt = async function(id) {
 
-    const arr = getReceipts();
+    const arr = await getReceipts();
     const receipt = arr.find(x => x.id === id);
 
     if (!receipt) return;
@@ -309,7 +387,7 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
 
         if (data.status === "ok") {
 
-            deleteReceipt(activeId);
+            await deleteReceipt(activeId);
             renderPending();
 
             resultSection.classList.add("hidden");
