@@ -268,3 +268,24 @@ td {
     padding: 6px 0;
     border-bottom: 1px dashed #e5e7eb;
 }
+
+.floating-actions{
+position:fixed;
+left:50%;
+bottom:24px;
+transform:translateX(-50%);
+display:flex;
+gap:14px;
+z-index:999;
+align-items:center;
+justify-content:center;
+}
+
+.floating-actions .scan-btn{
+position:static;
+margin:0;
+}
+
+.bg-btn{
+background:#111827;
+}

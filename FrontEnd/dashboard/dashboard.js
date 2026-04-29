@@ -82,8 +82,8 @@ async function initDashboard() {
         const data = result.data;
 
         /* ------------------ 1. STATS ------------------ */
-        document.getElementById('totalSpent').innerText =
-            `$${data.total_spent.toLocaleString()}`;
+        // document.getElementById('totalSpent').innerText =
+        //     `$${data.total_spent.toLocaleString()}`;
 
         document.getElementById('totalReceipts').innerText =
             data.total_receipts;

@@ -28,12 +28,12 @@ def plot_graph(metrics, fine, base, title):
     plt.bar(x - width/2, fine, width, label="Fine-Tuned Model")
     plt.bar(x + width/2, base, width, label="Base Model")
 
-    plt.xticks(x, metrics)
-    plt.ylabel("Score")
+    plt.xticks(x, metrics, ha='right', fontsize=20)  
+    plt.ylabel("Score",fontsize=16)
     plt.title(title)
-    plt.legend()
+    plt.legend(fontsize=20)
     plt.grid(axis='y', linestyle='--', alpha=0.6)
-
+    plt.ylim(0, 1.1) # Set y-axis limits to 0 and 1.1 for better visual range.
     plt.tight_layout()
     plt.show()
 

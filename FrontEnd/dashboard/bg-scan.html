@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Background Receipt Processor</title>
+<link rel="stylesheet" href="bg-style.css" />
+</head>
+<body>
+
+<div class="container">
+
+<header class="header">
+    <h1>Document Intelligence Pipeline</h1>
+    <p>OCR → KIE → Structured Data → Background Queue</p>
+</header>
+
+<section class="card split-layout">
+    <div class="upload-left">
+        <h2>Upload Receipt</h2>
+
+        <label class="upload-box">
+            <input type="file" id="imageInput" accept="image/*" hidden />
+            <div class="upload-content">
+                <span>Select receipt image</span>
+            </div>
+        </label>
+
+        <button id="processBtn" disabled>Process Receipt</button>
+    </div>
+
+    <div class="upload-right" id="imagePreview"></div>
+</section>
+
+<section class="card">
+    <h2>Pending Processed Receipts</h2>
+    <p class="sub">Processed in background. Not saved yet.</p>
+    <div id="pendingList"></div>
+</section>
+
+<section id="resultSection" class="card hidden receipt">
+
+    <div class="receipt-header">
+        <input id="vendorName" placeholder="Vendor name">
+        <input id="vendorAddress" placeholder="Vendor address">
+
+        <div class="receipt-meta">
+            <input id="vendorPhone" placeholder="Phone">
+            <input id="docDate" placeholder="Date">
+            <input id="docTime" placeholder="Time">
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="items-header">
+        <span>Item</span>
+        <span>Qty</span>
+        <span>Price</span>
+    </div>
+
+    <div id="itemsBody"></div>
+
+    <div id="addItemRow">
+        <button id="addItemBtn">＋ Add Item</button>
+    </div>
+
+    <hr>
+
+    <div class="total-row">
+        <span>Total</span>
+        <input id="totalAmount" type="number">
+    </div>
+
+    <button id="saveBtn">Save Receipt</button>
+
+</section>
+
+<div id="toast" class="toast hidden"></div>
+
+</div>
+
+<script src="bg-app.js"></script>
+</body>
+</html>

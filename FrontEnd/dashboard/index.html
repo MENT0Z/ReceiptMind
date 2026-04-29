@@ -35,10 +35,10 @@
 
         <!-- Stats -->
         <section class="stats">
-            <div class="stat">
+            <!-- <div class="stat">
                 <p>Total Spent</p>
                 <h2 id="totalSpent">$0</h2>
-            </div>
+            </div> -->
             <div class="stat">
                 <p>Total Receipts</p>
                 <h2 id="totalReceipts">0</h2>
@@ -90,10 +90,17 @@
 
     </main>
 
-    <!-- Floating Scan Button -->
+    <div class="floating-actions">
+
     <button class="scan-btn" onclick="window.location.href='scan.html'">
         ✨ Scan New Document
     </button>
+
+    <button class="scan-btn bg-btn" onclick="window.location.href='bg-scan.html'">
+        ⚡ Process In BG
+    </button>
+
+</div>
 
     <div id="receiptsDrawer" class="drawer">
         <div class="drawer-header">
